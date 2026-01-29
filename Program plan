@@ -1,0 +1,228 @@
+Build a bloodwork visualization web application using React + TypeScript (prefer Next.js). All data is local; no backend.
+
+Data Source
+
+There are four JSON files located in bloodworkJSONS/.
+Each file follows this exact structure:
+
+{
+  "collection_date": "YYYY-MM-DD",
+  "report_date": "YYYY-MM-DD",
+  "panels": [
+    {
+      "panel_name": "string",
+      "tests": [
+        {
+          "name": "string",
+          "result": number | string,
+          "unit": string | null,
+          "reference_range": string | null,
+          "flag": "High" | "Low" | null
+        }
+      ]
+    }
+  ]
+}
+
+
+Notes:
+
+result may be numeric (e.g. 402) or strings like "<5.0" or ">59".
+
+reference_range may be "low-high", ">x", "<x", or null.
+
+Normalization & Parsing (REQUIRED)
+
+Flatten all files into a unified array of metric readings.
+
+Create this canonical model:
+
+type MetricReading = {
+  metricId: string
+  metricName: string
+  category: string
+  date: string
+  value: number | null
+  valueText: string
+  comparator: '<' | '>' | '<=' | '>=' | '=' | null
+  unit: string
+  refLow?: number
+  refHigh?: number
+  refText?: string
+  flag: 'Low' | 'Normal' | 'High' | null
+  sourceFile: string
+}
+
+Parsing rules:
+
+metricId
+
+Slugify test.name (lowercase, remove punctuation/parentheses, spaces → _)
+
+value parsing
+
+If result is numeric → value = result
+
+If string like "<5.0":
+
+value = 5.0
+
+comparator = '<'
+
+valueText = "<5.0"
+
+unit
+
+Normalize to empty string if null
+
+reference_range parsing
+
+"a-b" → refLow = a, refHigh = b
+
+">x" → refLow = x
+
+"<x" → refHigh = x
+
+Always store original string in refText
+
+flag logic
+
+Prefer JSON flag if present
+
+Else compute:
+
+value < refLow → Low
+
+value > refHigh → High
+
+else Normal
+
+If comparator result exists (<5, >59) and ambiguous, do not auto-flag
+
+category
+
+Default to panel_name
+
+Allow optional overrides (e.g. “Hormones / Other” → “Hormones”)
+
+Validate all input using Zod. Show a clear error panel if invalid.
+
+Metric Canonicalization
+
+Create a metricAliases map to unify common naming differences across files
+(e.g., "Free T4 (Direct)" → "Free T4", "LDL Chol Calc (NIH)" → "LDL-C").
+Canonical alias controls metricId.
+
+UI Layout
+
+Left Sidebar
+
+Searchable metric list
+
+Grouped by category
+
+Checkbox to select metrics
+
+Keyboard accessible
+
+Center Visualization (Tabbed)
+Tabs:
+
+List View
+
+Sortable table
+
+Columns: Metric, Last Value, Unit, Reference Range, Flag, Δ vs prior
+
+Small sparkline per metric
+
+Trend View
+
+Line chart for a single selected metric across dates
+
+Show reference range band when available
+
+Overlay View
+
+Overlay multiple metrics
+
+Two modes:
+
+Raw units (only allow if units match)
+
+Normalized (min-max per metric)
+
+Cap overlays at 5 metrics unless user confirms
+
+Hover Tooltips
+Hovering a metric name shows:
+
+Description (from local metricDescriptions.ts)
+
+Unit
+
+Reference range
+
+Last value (with comparator)
+
+Change vs previous test
+
+Collection date
+
+Features
+
+Toggle: most recent only vs full timeline
+
+Filter by date range
+
+Dark / light mode
+
+Export selected metrics to CSV
+
+Responsive layout
+
+Clear empty states (“Select metrics to visualize”)
+
+Architecture
+
+Components:
+
+MetricSidebar
+
+MetricTable
+
+MetricChart
+
+OverlayChart
+
+TooltipCard
+
+DataLoader
+
+ErrorPanel
+
+Technical:
+
+Memoize derived state
+
+Charting library: Recharts (or equivalent)
+
+No backend
+
+Add at least 2 unit tests for the parser/normalizer
+
+UX Expectations
+
+Sticky sidebar
+
+Smooth hover interactions
+
+Clear visual flagging (High/Low)
+
+No hardcoded assumptions about metric names
+
+Clean, readable, production-quality code
+
+Goal
+
+This tool should make it easy to compare bloodwork metrics across time, understand what’s abnormal, and visually overlay trends without confusion.

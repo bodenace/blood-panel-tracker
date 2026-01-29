@@ -1,0 +1,101 @@
+{
+  "collection_date": "2024-09-24",
+  "report_date": "2024-09-28",
+  "panels": [
+    {
+      "panel_name": "TSH and Free T4",
+      "tests": [
+        { "name": "TSH", "result": 1.950, "unit": "uIU/mL", "reference_range": "0.450-4.500", "flag": null },
+        { "name": "Free T4 (Direct)", "result": 1.19, "unit": "ng/dL", "reference_range": "0.82-1.77", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "CBC with Diff, Platelet, NLR",
+      "tests": [
+        { "name": "WBC", "result": 6.9, "unit": "x10E3/uL", "reference_range": "3.4-10.8", "flag": null },
+        { "name": "RBC", "result": 5.68, "unit": "x10E6/uL", "reference_range": "4.14-5.80", "flag": null },
+        { "name": "Hemoglobin", "result": 17.3, "unit": "g/dL", "reference_range": "13.0-17.7", "flag": null },
+        { "name": "Hematocrit", "result": 51.9, "unit": "%", "reference_range": "37.5-51.0", "flag": "High" },
+        { "name": "MCV", "result": 91, "unit": "fL", "reference_range": "79-97", "flag": null },
+        { "name": "MCH", "result": 30.5, "unit": "pg", "reference_range": "26.6-33.0", "flag": null },
+        { "name": "MCHC", "result": 33.3, "unit": "g/dL", "reference_range": "31.5-35.7", "flag": null },
+        { "name": "RDW", "result": 13.2, "unit": "%", "reference_range": "11.6-15.4", "flag": null },
+        { "name": "Platelets", "result": 355, "unit": "x10E3/uL", "reference_range": "150-450", "flag": null },
+        { "name": "Neutrophils", "result": 56, "unit": "%", "reference_range": null, "flag": null },
+        { "name": "Lymphs", "result": 32, "unit": "%", "reference_range": null, "flag": null },
+        { "name": "Monocytes", "result": 8, "unit": "%", "reference_range": null, "flag": null },
+        { "name": "Eosinophils", "result": 3, "unit": "%", "reference_range": null, "flag": null },
+        { "name": "Basophils", "result": 1, "unit": "%", "reference_range": null, "flag": null },
+        { "name": "Neutrophils (Absolute)", "result": 3.8, "unit": "x10E3/uL", "reference_range": "1.4-7.0", "flag": null },
+        { "name": "Lymphs (Absolute)", "result": 2.2, "unit": "x10E3/uL", "reference_range": "0.7-3.1", "flag": null },
+        { "name": "Neut/Lymph Ratio", "result": 1.7, "unit": "ratio", "reference_range": "0.0-2.9", "flag": null },
+        { "name": "Monocytes (Absolute)", "result": 0.6, "unit": "x10E3/uL", "reference_range": "0.1-0.9", "flag": null },
+        { "name": "Eos (Absolute)", "result": 0.2, "unit": "x10E3/uL", "reference_range": "0.0-0.4", "flag": null },
+        { "name": "Baso (Absolute)", "result": 0.0, "unit": "x10E3/uL", "reference_range": "0.0-0.2", "flag": null },
+        { "name": "Immature Granulocytes", "result": 0, "unit": "%", "reference_range": null, "flag": null },
+        { "name": "Immature Grans (Absolute)", "result": 0.0, "unit": "x10E3/uL", "reference_range": "0.0-0.1", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Comprehensive Metabolic Panel (14)",
+      "tests": [
+        { "name": "Glucose", "result": 87, "unit": "mg/dL", "reference_range": "70-99", "flag": null },
+        { "name": "BUN", "result": 15, "unit": "mg/dL", "reference_range": "6-20", "flag": null },
+        { "name": "Creatinine", "result": 1.07, "unit": "mg/dL", "reference_range": "0.76-1.27", "flag": null },
+        { "name": "eGFR", "result": 99, "unit": "mL/min/1.73", "reference_range": ">59", "flag": null },
+        { "name": "BUN/Creatinine Ratio", "result": 14, "unit": null, "reference_range": "9-20", "flag": null },
+        { "name": "Sodium", "result": 140, "unit": "mmol/L", "reference_range": "134-144", "flag": null },
+        { "name": "Potassium", "result": 4.8, "unit": "mmol/L", "reference_range": "3.5-5.2", "flag": null },
+        { "name": "Chloride", "result": 103, "unit": "mmol/L", "reference_range": "96-106", "flag": null },
+        { "name": "Carbon Dioxide, Total", "result": 21, "unit": "mmol/L", "reference_range": "20-29", "flag": null },
+        { "name": "Calcium", "result": 9.7, "unit": "mg/dL", "reference_range": "8.7-10.2", "flag": null },
+        { "name": "Protein, Total", "result": 7.0, "unit": "g/dL", "reference_range": "6.0-8.5", "flag": null },
+        { "name": "Albumin", "result": 4.9, "unit": "g/dL", "reference_range": "4.3-5.2", "flag": null },
+        { "name": "Globulin, Total", "result": 2.1, "unit": "g/dL", "reference_range": "1.5-4.5", "flag": null },
+        { "name": "Bilirubin, Total", "result": 0.5, "unit": "mg/dL", "reference_range": "0.0-1.2", "flag": null },
+        { "name": "Alkaline Phosphatase", "result": 143, "unit": "IU/L", "reference_range": "44-121", "flag": "High" },
+        { "name": "AST (SGOT)", "result": 21, "unit": "IU/L", "reference_range": "0-40", "flag": null },
+        { "name": "ALT (SGPT)", "result": 24, "unit": "IU/L", "reference_range": "0-44", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Lipid Panel with LDL/HDL Ratio",
+      "tests": [
+        { "name": "Cholesterol, Total", "result": 175, "unit": "mg/dL", "reference_range": "100-199", "flag": null },
+        { "name": "Triglycerides", "result": 67, "unit": "mg/dL", "reference_range": "0-149", "flag": null },
+        { "name": "HDL Cholesterol", "result": 57, "unit": "mg/dL", "reference_range": ">39", "flag": null },
+        { "name": "VLDL Cholesterol (calculated)", "result": 13, "unit": "mg/dL", "reference_range": "5-40", "flag": null },
+        { "name": "LDL Chol Calc (NIH)", "result": 105, "unit": "mg/dL", "reference_range": "0-99", "flag": "High" },
+        { "name": "LDL/HDL Ratio", "result": 1.8, "unit": "ratio", "reference_range": "0.0-3.6", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "FSH and LH",
+      "tests": [
+        { "name": "LH", "result": 6.5, "unit": "mIU/mL", "reference_range": "1.7-8.6", "flag": null },
+        { "name": "FSH", "result": 2.7, "unit": "mIU/mL", "reference_range": "1.5-12.4", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Hemoglobin A1c",
+      "tests": [
+        { "name": "Hemoglobin A1c", "result": 5.4, "unit": "%", "reference_range": "4.8-5.6", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Hormones / Other",
+      "tests": [
+        { "name": "DHEA-Sulfate", "result": 333.0, "unit": "ug/dL", "reference_range": "138.5-475.2", "flag": null },
+        { "name": "Testosterone", "result": 402, "unit": "ng/dL", "reference_range": "264-916", "flag": null },
+        { "name": "Prolactin", "result": 10.5, "unit": "ng/mL", "reference_range": "3.6-31.5", "flag": null },
+        { "name": "Estradiol", "result": "<5.0", "unit": "pg/mL", "reference_range": "7.6-42.6", "flag": "Low" },
+        { "name": "Prostate Specific Ag (PSA)", "result": 0.3, "unit": "ng/mL", "reference_range": "0.0-4.0", "flag": null },
+        { "name": "Insulin-Like Growth Factor I (IGF-1)", "result": 210, "unit": "ng/mL", "reference_range": "109-353", "flag": null },
+        { "name": "Free Testosterone (Direct)", "result": 12.7, "unit": "pg/mL", "reference_range": "9.3-26.5", "flag": null },
+        { "name": "Ferritin", "result": 174, "unit": "ng/mL", "reference_range": "30-400", "flag": null },
+        { "name": "Triiodothyronine (T3), Free", "result": 3.4, "unit": "pg/mL", "reference_range": "2.0-4.4", "flag": null },
+        { "name": "Sex Hormone Binding Globulin (SHBG), Serum", "result": 31.6, "unit": "nmol/L", "reference_range": "16.5-55.9", "flag": null }
+      ]
+    }
+  ]
+}

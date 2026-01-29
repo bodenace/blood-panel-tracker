@@ -1,0 +1,190 @@
+{
+  "collection_date": "2026-01-27",
+  "panels": [
+    {
+      "panel_name": "CBC with Platelet Count and Auto Diff",
+      "tests": [
+        { "name": "WBC", "result": 5.3, "unit": "x10^3/µL", "reference_range": "3.5 - 9.5", "flag": null },
+        { "name": "RBC", "result": 5.4, "unit": "x10^6/µL", "reference_range": "4.3 - 5.7", "flag": null },
+        { "name": "HGB", "result": 16.2, "unit": "g/dL", "reference_range": "12.6 - 17.0", "flag": null },
+        { "name": "HCT", "result": 50.3, "unit": "%", "reference_range": "38.3 - 49.3", "flag": "H" },
+        { "name": "MCV", "result": 93.1, "unit": "fL", "reference_range": "78.3 - 95.5", "flag": null },
+        { "name": "MCH", "result": 30.0, "unit": "pg", "reference_range": "25.9 - 33.2", "flag": null },
+        { "name": "MCHC", "result": 32.2, "unit": "g/dL", "reference_range": "33.0 - 35.3", "flag": "L" },
+        { "name": "RDW", "result": 13.4, "unit": "%", "reference_range": "12.9 - 15.5", "flag": null },
+        { "name": "RDW-SD", "result": 42.6, "unit": "fL", "reference_range": "39.0 - 48.3", "flag": null },
+        { "name": "MPV", "result": 8.4, "unit": "fL", "reference_range": "7.4 - 10.6", "flag": null },
+        { "name": "LY%", "result": 34.4, "unit": "%", "reference_range": "20.2 - 43.5", "flag": null },
+        { "name": "MO%", "result": 7.7, "unit": "%", "reference_range": "5.2 - 13.2", "flag": null },
+        { "name": "NE%", "result": 55.0, "unit": "%", "reference_range": "40.6 - 70.5", "flag": null },
+        { "name": "EO%", "result": 2.7, "unit": "%", "reference_range": "0.8 - 7.7", "flag": null },
+        { "name": "BA%", "result": 0.3, "unit": "%", "reference_range": "0.1 - 0.5", "flag": null },
+        { "name": "LY#", "result": 1.8, "unit": "x10^3/µL", "reference_range": "1.2 - 3.1", "flag": null },
+        { "name": "MO#", "result": 0.4, "unit": "x10^3/µL", "reference_range": "0.2 - 1.1", "flag": null },
+        { "name": "NE#", "result": 2.9, "unit": "x10^3/µL", "reference_range": "1.8 - 5.9", "flag": null },
+        { "name": "EO#", "result": 0.1, "unit": "x10^3/µL", "reference_range": "0.0 - 0.5", "flag": null },
+        { "name": "BA#", "result": 0.01, "unit": "x10^3/µL", "reference_range": "0.01 - 0.04", "flag": null },
+        { "name": "PLT", "result": 315, "unit": "x10^3/µL", "reference_range": "146 - 352", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Hemoglobin A1c",
+      "tests": [
+        { "name": "Hemoglobin A1C", "result": 4.9, "unit": "%", "reference_range": "4.8 - 5.6", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Cardiac CRP",
+      "tests": [
+        { "name": "Cardiac CRP", "result": 0.8, "unit": "mg/L", "reference_range": "1.0 - 3.0", "flag": null, "comments": "Relative Cardiovascular Disease Risk: Low" }
+      ]
+    },
+    {
+      "panel_name": "Comprehensive Metabolic Panel",
+      "tests": [
+        { "name": "Sodium", "result": 141, "unit": "mmol/L", "reference_range": "136 - 145", "flag": null },
+        { "name": "Potassium", "result": 4.3, "unit": "mmol/L", "reference_range": "3.5 - 5.1", "flag": null },
+        { "name": "Cl-C", "result": 107, "unit": "mmol/L", "reference_range": "98 - 109", "flag": null },
+        { "name": "Calcium", "result": 9.8, "unit": "mg/dL", "reference_range": "8.4 - 10.2", "flag": null },
+        { "name": "CO2", "result": 25, "unit": "mEq/L", "reference_range": "22 - 29", "flag": null },
+        { "name": "Blood Urea Nitrogen", "result": 17, "unit": "mg/dL", "reference_range": "<= 21", "flag": null },
+        { "name": "Creatinine", "result": 1.1, "unit": "mg/dL", "reference_range": "0.7 - 1.2", "flag": null },
+        { "name": "Glucose", "result": 84, "unit": "mg/dL", "reference_range": "70 - 99", "flag": null },
+        { "name": "Total Protein", "result": 7.4, "unit": "g/dL", "reference_range": "6.0 - 8.3", "flag": null },
+        { "name": "Albumin", "result": 4.9, "unit": "g/dL", "reference_range": "3.5 - 5.0", "flag": null },
+        { "name": "Alkaline Phosphatase", "result": 90, "unit": "U/L", "reference_range": "40 - 150", "flag": null },
+        { "name": "Aspartate Aminotransferase", "result": 25, "unit": "U/L", "reference_range": "11 - 34", "flag": null },
+        { "name": "Alanine aminotransferase", "result": 20, "unit": "U/L", "reference_range": "< 45", "flag": null },
+        { "name": "Total Bilirubin", "result": 0.5, "unit": "mg/dL", "reference_range": "0.2 - 1.2", "flag": null },
+        { "name": "eGFR", "result": 94.6, "unit": "mL/min/1.73m^2", "reference_range": "60.0 - 120.0", "flag": null },
+        { "name": "Anion Gap", "result": 9, "unit": "mEq/L", "reference_range": "7 - 16", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Free Testosterone",
+      "tests": [
+        { "name": "Testosterone Total", "result": 550.69, "unit": "ng/dL", "reference_range": "240.0000 - 870.0000", "flag": null },
+        { "name": "Sex Hormone Binding Globulin", "result": 40.2, "unit": "nmol/L", "reference_range": "11.2000 - 78.1000", "flag": null },
+        { "name": "Albumin", "result": 4.9, "unit": "g/dL", "reference_range": "3.5 - 5.0", "flag": null },
+        { "name": "Free Testosterone", "result": 9.7246, "unit": "ng/dL", "reference_range": "4.7000 - 24.4000", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Cortisol",
+      "tests": [
+        { "name": "Cortisol", "result": 11.6, "unit": "µg/dL", "reference_range": "3.7000 - 19.4000", "flag": null, "comments": "Default range is for AM draws. For draws after 5 PM, normal reference range is 2.9-17.3 ug/dL." }
+      ]
+    },
+    {
+      "panel_name": "DHEA-S",
+      "tests": [
+        { "name": "DHEA-S", "result": 421.1, "unit": "µg/dL", "reference_range": "167.9000 - 591.9000", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Estradiol",
+      "tests": [
+        { "name": "Estradiol", "result": 24, "unit": "pg/mL", "reference_range": "24.0100 - 39.9900", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Follicle-Stimulating Hormone",
+      "tests": [
+        { "name": "Follicle-Stimulating Hormone", "result": 2.2, "unit": "mIU/mL", "reference_range": "0.9500 - 11.9500", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Free PSA",
+      "tests": [
+        { "name": "Free PSA", "result": 0.282, "unit": "ng/mL", "reference_range": null, "flag": null, "comments": "To obtain a cancer risk score, calculate % free PSA = (Free PSA / Total PSA) x 100." }
+      ]
+    },
+    {
+      "panel_name": "Insulin, Random",
+      "tests": [
+        { "name": "Insulin, Random", "result": 3.9, "unit": "µIU/mL", "reference_range": "20.0000 - 112.0000", "flag": "L" }
+      ]
+    },
+    {
+      "panel_name": "Lipid Panel",
+      "tests": [
+        { "name": "Cholesterol", "result": 188, "unit": "mg/dL", "reference_range": "0 - 200", "flag": null },
+        { "name": "Direct LDL", "result": 131, "unit": "mg/dL", "reference_range": "<= 99", "flag": "H" },
+        { "name": "HDL", "result": 52, "unit": "mg/dL", "reference_range": "40 <=", "flag": null, "comments": "Negative risk factor for heart disease" },
+        { "name": "Triglycerides", "result": 80, "unit": "mg/dL", "reference_range": "0 - 150", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Luteinizing Hormone",
+      "tests": [
+        { "name": "Luteinizing Hormone", "result": 3.28, "unit": "mIU/mL", "reference_range": "0.5700 - 12.0700", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Magnesium",
+      "tests": [
+        { "name": "Magnesium", "result": 2.0, "unit": "mg/dL", "reference_range": "1.6 - 2.6", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Phosphorus",
+      "tests": [
+        { "name": "Phosphorus", "result": 4.1, "unit": "mg/dL", "reference_range": "2.3 - 4.7", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Prolactin",
+      "tests": [
+        { "name": "Prolactin", "result": 8.26, "unit": "ng/mL", "reference_range": "3.4600 - 19.4000", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "T3, Free",
+      "tests": [
+        { "name": "Free T3", "result": 2.99, "unit": "pg/mL", "reference_range": "1.58 - 3.91", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "T4, Free",
+      "tests": [
+        { "name": "Free T4", "result": 1.01, "unit": "ng/dL", "reference_range": "0.70 - 1.48", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Thyroid Stimulating Hormone",
+      "tests": [
+        { "name": "Thyroid Stimulating Hormone", "result": 2.11, "unit": "µIU/mL", "reference_range": "0.35 - 4.94", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Total PSA",
+      "tests": [
+        { "name": "Total PSA", "result": 0.353, "unit": "ng/mL", "reference_range": "0.0000 - 4.0000", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Total T3 (Triiodothyronine)",
+      "tests": [
+        { "name": "Total T3", "result": 0.93, "unit": "ng/mL", "reference_range": "0.35 - 1.93", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Total T4 (Thyroxine)",
+      "tests": [
+        { "name": "Thyroxine", "result": 6.94, "unit": "µg/dL", "reference_range": "4.87 - 11.72", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Vitamin B12",
+      "tests": [
+        { "name": "Vitamin B12", "result": 721, "unit": "pg/mL", "reference_range": "213.0000 - 816.0000", "flag": null }
+      ]
+    },
+    {
+      "panel_name": "Vitamin D25-OH",
+      "tests": [
+        { "name": "Vitamin D25-OH", "result": 42.52, "unit": "ng/mL", "reference_range": "6.2000 - 53.2000", "flag": null }
+      ]
+    }
+  ]
+}
