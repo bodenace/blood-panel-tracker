@@ -5,8 +5,7 @@ import boden_0928 from './boden/09-28-24.json'
 import boden_1008 from './boden/10-08-25.json'
 import boden_0127 from './boden/01-27-26.json'
 
-// Grace imports are added here as files are uploaded
-// e.g. import grace_XXXX from './grace/XX-XX-XX.json'
+import grace_1023 from './grace/10-23-24.json'
 
 export type BloodworkFile = { data: unknown; filename: string }
 
@@ -17,7 +16,9 @@ export const userData: Record<string, BloodworkFile[]> = {
     { data: boden_1008, filename: '10-08-25.json' },
     { data: boden_0127, filename: '01-27-26.json' },
   ],
-  grace: [],
+  grace: [
+    { data: grace_1023, filename: '10-23-24.json' },
+  ],
 }
 
 export const userNames: Record<string, string> = {
