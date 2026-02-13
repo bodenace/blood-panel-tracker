@@ -1,6 +1,7 @@
 'use client'
 
-import { Sun, Moon, Download, Calendar, Filter } from 'lucide-react'
+import { Sun, Moon, Download, Calendar, Upload, FolderOpen, Activity } from 'lucide-react'
+import { userNames, userIds } from '@/data'
 
 interface HeaderProps {
   darkMode: boolean
@@ -13,6 +14,11 @@ interface HeaderProps {
   onEndDateChange: (date: string | null) => void
   showMostRecentOnly: boolean
   onToggleMostRecent: () => void
+  currentUser: string
+  onUserChange: (userId: string) => void
+  onUploadClick?: () => void
+  onManageFilesClick?: () => void
+  onAnalyzeClick?: () => void
 }
 
 export function Header({
@@ -26,18 +32,42 @@ export function Header({
   onEndDateChange,
   showMostRecentOnly,
   onToggleMostRecent,
+  currentUser,
+  onUserChange,
+  onUploadClick,
+  onManageFilesClick,
+  onAnalyzeClick,
 }: HeaderProps) {
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Title */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Blood Panel Tracker
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Visualize and compare your bloodwork results over time
-          </p>
+        {/* Left side: Title + User Toggle */}
+        <div className="flex items-center gap-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Blood Panel Tracker
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Visualize and compare your bloodwork results over time
+            </p>
+          </div>
+
+          {/* User Toggle Pill */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full p-1">
+            {userIds.map(id => (
+              <button
+                key={id}
+                onClick={() => onUserChange(id)}
+                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+                  currentUser === id
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                {userNames[id] || id}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Controls */}
@@ -92,6 +122,39 @@ export function Header({
               Most recent only
             </span>
           </label>
+
+          {/* Analysis button */}
+          {onAnalyzeClick && (
+            <button
+              onClick={onAnalyzeClick}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Activity className="w-4 h-4" />
+              Analysis
+            </button>
+          )}
+
+          {/* Manage Files button */}
+          {onManageFilesClick && (
+            <button
+              onClick={onManageFilesClick}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              <FolderOpen className="w-4 h-4" />
+              Files
+            </button>
+          )}
+
+          {/* Upload button */}
+          {onUploadClick && (
+            <button
+              onClick={onUploadClick}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Upload className="w-4 h-4" />
+              Upload PDF
+            </button>
+          )}
 
           {/* Export button */}
           <button

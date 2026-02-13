@@ -1,39 +1,78 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { MetricReading, MetricGroup } from '@/types/bloodwork'
 import { parseAllBloodworkFiles } from './parser'
 import { groupReadingsByMetric } from './utils'
+import { userData, BloodworkFile } from '@/data'
 
-// Import bloodwork data statically
-import data0103 from '../data/01-03-24.json'
-import data0928 from '../data/09-28-24.json'
-import data1008 from '../data/10-08-25.json'
-import data0127 from '../data/01-27-26.json'
-
-export function useBloodworkData() {
+/**
+ * Load bloodwork data for a user.
+ * - For users with static imports (boden), uses the bundled data.
+ * - Also fetches from /api/load-data to pick up dynamically uploaded files.
+ * - refreshKey can be incremented to force a re-fetch (e.g. after upload or delete).
+ */
+export function useBloodworkData(userId: string, refreshKey: number = 0) {
   const [readings, setReadings] = useState<MetricReading[]>([])
   const [errors, setErrors] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const files = [
-      { data: data0103, filename: '01-03-24.json' },
-      { data: data0928, filename: '09-28-24.json' },
-      { data: data1008, filename: '10-08-25.json' },
-      { data: data0127, filename: '01-27-26.json' },
-    ]
+    let cancelled = false
 
-    const { readings: parsed, errors: parseErrors } = parseAllBloodworkFiles(files)
-    setReadings(parsed)
-    setErrors(parseErrors)
-    setIsLoading(false)
-  }, [])
+    async function loadData() {
+      setIsLoading(true)
+
+      // Start with static imports for this user
+      const staticFiles = userData[userId] || []
+      const staticFilenames = new Set(staticFiles.map(f => f.filename))
+
+      // Also fetch dynamic files from the API (catches uploads/deletes without rebuild)
+      let dynamicFiles: BloodworkFile[] = []
+      try {
+        const res = await fetch(`/api/load-data?user=${encodeURIComponent(userId)}`)
+        if (res.ok) {
+          const json = await res.json()
+          // Only include files that aren't already in static imports (avoid duplicates)
+          dynamicFiles = (json.files || []).filter(
+            (f: BloodworkFile) => !staticFilenames.has(f.filename)
+          )
+        }
+      } catch {
+        // API not available (e.g. static export) -- static files only
+      }
+
+      const allFiles = [...staticFiles, ...dynamicFiles]
+
+      if (cancelled) return
+
+      if (allFiles.length === 0) {
+        setReadings([])
+        setErrors([])
+        setIsLoading(false)
+        return
+      }
+
+      const { readings: parsed, errors: parseErrors } = parseAllBloodworkFiles(allFiles)
+
+      if (cancelled) return
+
+      setReadings(parsed)
+      setErrors(parseErrors)
+      setIsLoading(false)
+    }
+
+    loadData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [userId, refreshKey])
 
   const metrics = useMemo(() => groupReadingsByMetric(readings), [readings])
 
   const dates = useMemo(() => {
-    const uniqueDates = [...new Set(readings.map(r => r.date))]
+    const uniqueDates = Array.from(new Set(readings.map(r => r.date)))
     return uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
   }, [readings])
 
@@ -85,7 +124,7 @@ export function useDateFilter(availableDates: string[]) {
   const [endDate, setEndDate] = useState<string | null>(null)
   const [showMostRecentOnly, setShowMostRecentOnly] = useState(false)
 
-  const filterReadings = (readings: MetricReading[]): MetricReading[] => {
+  const filterReadings = useCallback((readings: MetricReading[]): MetricReading[] => {
     let filtered = readings
 
     if (showMostRecentOnly && availableDates.length > 0) {
@@ -101,7 +140,7 @@ export function useDateFilter(availableDates: string[]) {
     }
 
     return filtered
-  }
+  }, [availableDates, showMostRecentOnly, startDate, endDate])
 
   return {
     startDate,

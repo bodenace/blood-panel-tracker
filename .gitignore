@@ -41,3 +41,7 @@ Thumbs.db
 
 # Testing
 coverage/
+
+# Generated analysis data
+src/data/**/_analyses/
+src/data/**/_analysis.json

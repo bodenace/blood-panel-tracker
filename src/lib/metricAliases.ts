@@ -114,7 +114,6 @@ export const metricAliases: Record<string, string> = {
 
   // A1c
   'hemoglobin a1c': 'HbA1c',
-  'hemoglobin a1c': 'HbA1c',
 }
 
 // Get canonical name for a metric

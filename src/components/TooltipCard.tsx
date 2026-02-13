@@ -1,5 +1,6 @@
 'use client'
 
+import { createPortal } from 'react-dom'
 import { MetricGroup } from '@/types/bloodwork'
 import { getMetricDescription } from '@/lib/metricDescriptions'
 import { formatDate, formatValue, calculateChange, getFlagColorClass } from '@/lib/utils'
@@ -15,13 +16,14 @@ export function TooltipCard({ metric, position }: TooltipCardProps) {
   const { delta, percentChange } = calculateChange(metric.readings)
 
   // Keep tooltip within viewport
-  const adjustedY = Math.min(position.y, window.innerHeight - 300)
+  const adjustedX = Math.min(position.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 310)
+  const adjustedY = Math.max(8, Math.min(position.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - 300))
 
-  return (
+  const tooltip = (
     <div
-      className="fixed z-50 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 pointer-events-none"
+      className="fixed z-[9999] w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 pointer-events-none"
       style={{
-        left: position.x,
+        left: adjustedX,
         top: adjustedY,
       }}
     >
@@ -99,4 +101,9 @@ export function TooltipCard({ metric, position }: TooltipCardProps) {
       </div>
     </div>
   )
+
+  if (typeof document !== 'undefined') {
+    return createPortal(tooltip, document.body)
+  }
+  return tooltip
 }
