@@ -45,3 +45,10 @@ coverage/
 # Generated analysis data
 src/data/**/_analyses/
 src/data/**/_analysis.json
+
+# Virtual Provider session data (personal health data)
+src/data/**/_provider/
+
+# Screenshots and utility scripts
+*.png
+take-screenshots.js

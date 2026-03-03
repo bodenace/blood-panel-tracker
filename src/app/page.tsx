@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useBloodworkData, useMetricSelection, useDateFilter } from '@/lib/useBloodworkData'
 import { groupReadingsByMetric, exportToCSV } from '@/lib/utils'
 import { MetricSidebar } from '@/components/MetricSidebar'
@@ -11,16 +12,15 @@ import { ErrorPanel } from '@/components/ErrorPanel'
 import { Header } from '@/components/Header'
 import { UploadPanel } from '@/components/UploadPanel'
 import { FileManager } from '@/components/FileManager'
-import { AnalysisDrawer } from '@/components/AnalysisDrawer'
 import { LayoutList, TrendingUp, Layers } from 'lucide-react'
 
 type ViewTab = 'list' | 'trend' | 'overlay'
 
 export default function Home() {
+  const router = useRouter()
   const [currentUser, setCurrentUser] = useState<string>('boden')
   const [showUpload, setShowUpload] = useState(false)
   const [showFileManager, setShowFileManager] = useState(false)
-  const [showAnalysis, setShowAnalysis] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const { readings, metrics, dates, errors, isLoading } = useBloodworkData(currentUser, refreshKey)
@@ -137,7 +137,7 @@ export default function Home() {
         onUserChange={setCurrentUser}
         onUploadClick={() => setShowUpload(true)}
         onManageFilesClick={() => setShowFileManager(true)}
-        onAnalyzeClick={readings.length > 0 ? () => setShowAnalysis(true) : undefined}
+        onAnalyzeClick={readings.length > 0 ? () => router.push(`/virtual-provider?user=${currentUser}`) : undefined}
       />
 
       {/* Upload panel overlay */}
@@ -157,15 +157,6 @@ export default function Home() {
           onFilesChanged={handleDataChanged}
         />
       )}
-
-      {/* Analysis drawer */}
-      <AnalysisDrawer
-        isOpen={showAnalysis}
-        onClose={() => setShowAnalysis(false)}
-        currentUser={currentUser}
-        metrics={filteredMetrics}
-        readings={readings}
-      />
 
       {/* Error panel */}
       {errors.length > 0 && !dismissedErrors && (

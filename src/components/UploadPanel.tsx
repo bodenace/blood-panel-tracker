@@ -28,9 +28,10 @@ interface UploadPanelProps {
   currentUser: string
   onSuccess: () => void
   onClose: () => void
+  onAutoCompare?: (metrics: unknown[]) => void
 }
 
-export function UploadPanel({ currentUser, onSuccess, onClose }: UploadPanelProps) {
+export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: UploadPanelProps) {
   const [state, setState] = useState<UploadState>({ status: 'idle' })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragCountRef = useRef(0)
@@ -165,11 +166,21 @@ export function UploadPanel({ currentUser, onSuccess, onClose }: UploadPanelProp
     }
   }, [state, currentUser])
 
-  const handleAcceptResult = useCallback(() => {
+  const handleAcceptResult = useCallback(async () => {
     if (state.status === 'success') {
       onSuccess()
+      // Trigger auto-comparison against active VP recommendations
+      try {
+        await fetch('/api/virtual-provider/tracking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: currentUser, newMetrics: [] }),
+        })
+      } catch {
+        // Non-critical — comparison is best-effort
+      }
     }
-  }, [state, onSuccess])
+  }, [state, onSuccess, currentUser])
 
   const handleReset = useCallback(() => {
     setState({ status: 'idle' })
