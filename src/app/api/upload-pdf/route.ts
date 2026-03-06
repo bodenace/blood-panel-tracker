@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
     const mm = dateParts[1]
     const dd = dateParts[2]
     const yy = dateParts[0].slice(-2)
-    const filename = `${mm}-${dd}-${yy}.json`
+    const baseName = `${mm}-${dd}-${yy}`
 
     // --- Write files to disk ---
     const projectRoot = process.cwd()
@@ -239,6 +239,14 @@ export async function POST(request: NextRequest) {
 
     fs.mkdirSync(dataDir, { recursive: true })
     fs.mkdirSync(archiveRoot, { recursive: true })
+
+    // Avoid overwriting an existing file for the same date by appending _2, _3, etc.
+    let filename = `${baseName}.json`
+    let suffix = 2
+    while (fs.existsSync(path.join(dataDir, filename))) {
+      filename = `${baseName}_${suffix}.json`
+      suffix++
+    }
 
     const jsonContent = JSON.stringify(finalJson, null, 2)
     const dataPath = path.join(dataDir, filename)

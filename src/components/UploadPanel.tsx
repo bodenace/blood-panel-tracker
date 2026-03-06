@@ -3,13 +3,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { X, Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 
-type UploadState =
-  | { status: 'idle' }
-  | { status: 'selected'; file: File }
-  | { status: 'uploading'; file: File; step: string }
-  | { status: 'success'; file: File; result: UploadResult }
-  | { status: 'error'; file: File | null; message: string; details?: string[] }
-
 interface UploadResult {
   filename: string
   collectionDate: string
@@ -24,6 +17,20 @@ interface UploadResult {
   data: unknown
 }
 
+type FileItemStatus =
+  | { status: 'pending' }
+  | { status: 'uploading'; step: string }
+  | { status: 'success'; result: UploadResult }
+  | { status: 'error'; message: string; details?: string[] }
+
+interface FileItem {
+  id: string
+  file: File
+  fileStatus: FileItemStatus
+}
+
+type UploadPhase = 'idle' | 'selected' | 'uploading' | 'done'
+
 interface UploadPanelProps {
   currentUser: string
   onSuccess: () => void
@@ -31,18 +38,35 @@ interface UploadPanelProps {
   onAutoCompare?: (metrics: unknown[]) => void
 }
 
-export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: UploadPanelProps) {
-  const [state, setState] = useState<UploadState>({ status: 'idle' })
+let nextFileId = 0
+
+export function UploadPanel({ currentUser, onSuccess, onClose }: UploadPanelProps) {
+  const [phase, setPhase] = useState<UploadPhase>('idle')
+  const [files, setFiles] = useState<FileItem[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragCountRef = useRef(0)
   const [isDragOver, setIsDragOver] = useState(false)
 
-  const handleFile = useCallback((file: File) => {
-    if (file.type !== 'application/pdf') {
-      setState({ status: 'error', file: null, message: 'Please select a PDF file.' })
-      return
-    }
-    setState({ status: 'selected', file })
+  const addFiles = useCallback((newFiles: File[]) => {
+    const pdfFiles = newFiles.filter(f => f.type === 'application/pdf')
+    if (pdfFiles.length === 0) return
+
+    const items: FileItem[] = pdfFiles.map(file => ({
+      id: `file-${nextFileId++}`,
+      file,
+      fileStatus: { status: 'pending' },
+    }))
+
+    setFiles(prev => [...prev, ...items])
+    setPhase('selected')
+  }, [])
+
+  const removeFile = useCallback((id: string) => {
+    setFiles(prev => {
+      const next = prev.filter(f => f.id !== id)
+      if (next.length === 0) setPhase('idle')
+      return next
+    })
   }, [])
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -72,122 +96,133 @@ export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: 
     dragCountRef.current = 0
     setIsDragOver(false)
 
-    const files = e.dataTransfer.files
-    if (files.length > 0) {
-      handleFile(files[0])
+    const droppedFiles = Array.from(e.dataTransfer.files)
+    if (droppedFiles.length > 0) {
+      addFiles(droppedFiles)
     }
-  }, [handleFile])
+  }, [addFiles])
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      handleFile(files[0])
+    const selected = e.target.files
+    if (selected && selected.length > 0) {
+      addFiles(Array.from(selected))
     }
-  }, [handleFile])
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [addFiles])
 
   const handleUpload = useCallback(async () => {
-    if (state.status !== 'selected') return
+    if (phase !== 'selected' || files.length === 0) return
+    setPhase('uploading')
 
-    const file = state.file
-    setState({ status: 'uploading', file, step: 'Uploading PDF...' })
+    const fileIds = files.map(f => f.id)
+    const fileMap = new Map(files.map(f => [f.id, f.file]))
 
-    try {
-      const formData = new FormData()
-      formData.append('pdf', file)
-      formData.append('user', currentUser)
+    for (const id of fileIds) {
+      const file = fileMap.get(id)!
 
-      // Update step as we wait
-      const stepTimeout = setTimeout(() => {
-        setState(prev => {
-          if (prev.status === 'uploading') {
-            return { ...prev, step: 'Extracting text and converting with AI...' }
-          }
-          return prev
-        })
-      }, 2000)
+      setFiles(prev => prev.map(f =>
+        f.id === id
+          ? { ...f, fileStatus: { status: 'uploading', step: 'Uploading PDF...' } }
+          : f
+      ))
 
-      const stepTimeout2 = setTimeout(() => {
-        setState(prev => {
-          if (prev.status === 'uploading') {
-            return { ...prev, step: 'Verifying accuracy with AI...' }
-          }
-          return prev
-        })
-      }, 10000)
-
-      const stepTimeout3 = setTimeout(() => {
-        setState(prev => {
-          if (prev.status === 'uploading') {
-            return { ...prev, step: 'Almost done, validating and saving...' }
-          }
-          return prev
-        })
-      }, 20000)
-
-      const response = await fetch('/api/upload-pdf', {
-        method: 'POST',
-        body: formData,
-      })
-
-      clearTimeout(stepTimeout)
-      clearTimeout(stepTimeout2)
-      clearTimeout(stepTimeout3)
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        setState({
-          status: 'error',
-          file,
-          message: result.error || 'Upload failed',
-          details: result.zodErrors || (result.raw ? [`Raw AI output: ${result.raw}`] : undefined),
-        })
-        return
-      }
-
-      setState({
-        status: 'success',
-        file,
-        result: {
-          filename: result.filename,
-          collectionDate: result.collectionDate,
-          panelCount: result.panelCount,
-          testCount: result.testCount,
-          verification: result.verification,
-          data: result.data,
-        },
-      })
-    } catch (error) {
-      setState({
-        status: 'error',
-        file,
-        message: error instanceof Error ? error.message : 'Network error',
-      })
-    }
-  }, [state, currentUser])
-
-  const handleAcceptResult = useCallback(async () => {
-    if (state.status === 'success') {
-      onSuccess()
-      // Trigger auto-comparison against active VP recommendations
       try {
-        await fetch('/api/virtual-provider/tracking', {
+        const formData = new FormData()
+        formData.append('pdf', file)
+        formData.append('user', currentUser)
+
+        const timeouts: ReturnType<typeof setTimeout>[] = []
+        const updateStep = (step: string, delay: number) => {
+          timeouts.push(setTimeout(() => {
+            setFiles(prev => prev.map(f =>
+              f.id === id && f.fileStatus.status === 'uploading'
+                ? { ...f, fileStatus: { status: 'uploading', step } }
+                : f
+            ))
+          }, delay))
+        }
+        updateStep('Extracting text and converting with AI...', 2000)
+        updateStep('Verifying accuracy with AI...', 10000)
+        updateStep('Almost done, validating and saving...', 20000)
+
+        const response = await fetch('/api/upload-pdf', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: currentUser, newMetrics: [] }),
+          body: formData,
         })
-      } catch {
-        // Non-critical — comparison is best-effort
+
+        timeouts.forEach(clearTimeout)
+        const result = await response.json()
+
+        if (!response.ok) {
+          setFiles(prev => prev.map(f =>
+            f.id === id
+              ? {
+                  ...f, fileStatus: {
+                    status: 'error',
+                    message: result.error || 'Upload failed',
+                    details: result.zodErrors || (result.raw ? [`Raw AI output: ${result.raw}`] : undefined),
+                  }
+                }
+              : f
+          ))
+        } else {
+          setFiles(prev => prev.map(f =>
+            f.id === id
+              ? {
+                  ...f, fileStatus: {
+                    status: 'success',
+                    result: {
+                      filename: result.filename,
+                      collectionDate: result.collectionDate,
+                      panelCount: result.panelCount,
+                      testCount: result.testCount,
+                      verification: result.verification,
+                      data: result.data,
+                    }
+                  }
+                }
+              : f
+          ))
+        }
+      } catch (error) {
+        setFiles(prev => prev.map(f =>
+          f.id === id
+            ? {
+                ...f, fileStatus: {
+                  status: 'error',
+                  message: error instanceof Error ? error.message : 'Network error',
+                }
+              }
+            : f
+        ))
       }
     }
-  }, [state, onSuccess, currentUser])
+
+    setPhase('done')
+  }, [phase, files, currentUser])
+
+  const handleAcceptResults = useCallback(async () => {
+    onSuccess()
+    try {
+      await fetch('/api/virtual-provider/tracking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: currentUser, newMetrics: [] }),
+      })
+    } catch {
+      // Non-critical — comparison is best-effort
+    }
+  }, [onSuccess, currentUser])
 
   const handleReset = useCallback(() => {
-    setState({ status: 'idle' })
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
+    setPhase('idle')
+    setFiles([])
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }, [])
+
+  const hasAnySuccess = files.some(f => f.fileStatus.status === 'success')
+  const successCount = files.filter(f => f.fileStatus.status === 'success').length
+  const errorCount = files.filter(f => f.fileStatus.status === 'error').length
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -195,7 +230,7 @@ export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Upload Bloodwork PDF
+            Upload Bloodwork PDF{files.length > 1 ? 's' : ''}
           </h2>
           <button
             onClick={onClose}
@@ -207,8 +242,8 @@ export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: 
 
         {/* Content */}
         <div className="p-6">
-          {/* Idle / Selected state: Drop zone */}
-          {(state.status === 'idle' || state.status === 'selected') && (
+          {/* Idle / Selected: Drop zone + file list */}
+          {(phase === 'idle' || phase === 'selected') && (
             <>
               <div
                 onDragEnter={handleDragEnter}
@@ -219,7 +254,7 @@ export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: 
                 className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                   isDragOver
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : state.status === 'selected'
+                    : files.length > 0
                     ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 }`}
@@ -228,173 +263,215 @@ export function UploadPanel({ currentUser, onSuccess, onClose, onAutoCompare }: 
                   ref={fileInputRef}
                   type="file"
                   accept="application/pdf"
+                  multiple
                   onChange={handleFileInput}
                   className="hidden"
                 />
 
-                {state.status === 'selected' ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <FileText className="w-10 h-10 text-green-500" />
-                    <div>
+                <div className="flex flex-col items-center gap-3">
+                  {files.length > 0 ? (
+                    <>
+                      <FileText className="w-10 h-10 text-green-500" />
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {state.file.name}
+                        {files.length} PDF{files.length > 1 ? 's' : ''} selected
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {(state.file.size / 1024).toFixed(1)} KB -- Click to change
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Click or drop to add more
                       </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <Upload className="w-10 h-10 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Drop your bloodwork PDF here
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        or click to browse
-                      </p>
-                    </div>
-                  </div>
-                )}
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-10 h-10 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Drop your bloodwork PDFs here
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          or click to browse &mdash; multiple files supported
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
+              {/* Selected file list */}
+              {files.length > 0 && (
+                <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
+                  {files.map(f => (
+                    <div key={f.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-900 dark:text-white truncate">{f.file.name}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                          {(f.file.size / 1024).toFixed(1)} KB
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeFile(f.id) }}
+                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex-shrink-0 ml-2"
+                      >
+                        <X className="w-3.5 h-3.5 text-gray-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
-                The PDF will be processed by AI to extract test results into structured data.
+                Each PDF will be processed by AI to extract test results into structured data.
                 Two AI passes ensure accuracy.
               </p>
 
-              {state.status === 'selected' && (
+              {files.length > 0 && (
                 <button
                   onClick={handleUpload}
                   className="w-full mt-4 px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
                 >
                   <Upload className="w-4 h-4" />
-                  Process PDF
+                  Process {files.length} PDF{files.length > 1 ? 's' : ''}
                 </button>
               )}
             </>
           )}
 
           {/* Uploading state */}
-          {state.status === 'uploading' && (
-            <div className="text-center py-8">
-              <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {state.step}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                This may take 15-30 seconds
+          {phase === 'uploading' && (
+            <div className="py-4 space-y-3">
+              {files.map(f => (
+                <div key={f.id} className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  {f.fileStatus.status === 'pending' && (
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" />
+                  )}
+                  {f.fileStatus.status === 'uploading' && (
+                    <Loader2 className="w-5 h-5 text-blue-500 animate-spin flex-shrink-0" />
+                  )}
+                  {f.fileStatus.status === 'success' && (
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  )}
+                  {f.fileStatus.status === 'error' && (
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-900 dark:text-white truncate">{f.file.name}</p>
+                    {f.fileStatus.status === 'uploading' && (
+                      <p className="text-xs text-blue-500 mt-0.5">{f.fileStatus.step}</p>
+                    )}
+                    {f.fileStatus.status === 'success' && (
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+                        {f.fileStatus.result.filename} &mdash; {f.fileStatus.result.testCount} tests
+                      </p>
+                    )}
+                    {f.fileStatus.status === 'error' && (
+                      <p className="text-xs text-red-500 mt-0.5">{f.fileStatus.message}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+                Processing file {files.findIndex(f => f.fileStatus.status === 'uploading') + 1} of {files.length}&hellip; This may take 15&ndash;30 seconds per file.
               </p>
             </div>
           )}
 
-          {/* Success state */}
-          {state.status === 'success' && (
+          {/* Done state */}
+          {phase === 'done' && (
             <div className="py-4">
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-8 h-8 text-green-500 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Successfully processed!
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {state.result.filename} -- {state.result.collectionDate}
-                  </p>
-                </div>
+              {/* Summary bar */}
+              <div className="flex items-center gap-2 mb-4">
+                {successCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    {successCount} succeeded
+                  </span>
+                )}
+                {errorCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errorCount} failed
+                  </span>
+                )}
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {state.result.panelCount}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Panels</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {state.result.testCount}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Tests</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {Math.round(state.result.verification.confidence * 100)}%
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Confidence</p>
-                </div>
+              <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                {files.map(f => (
+                  <div key={f.id} className="px-3 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {f.fileStatus.status === 'success' ? (
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {f.file.name}
+                        </p>
+                        {f.fileStatus.status === 'success' && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {f.fileStatus.result.filename} &mdash; {f.fileStatus.result.collectionDate} &mdash; {f.fileStatus.result.panelCount} panels, {f.fileStatus.result.testCount} tests &mdash; {Math.round(f.fileStatus.result.verification.confidence * 100)}% confidence
+                          </p>
+                        )}
+                        {f.fileStatus.status === 'error' && (
+                          <>
+                            <p className="text-xs text-red-500">{f.fileStatus.message}</p>
+                            {f.fileStatus.details && (
+                              <ul className="mt-1 space-y-0.5">
+                                {f.fileStatus.details.map((detail, i) => (
+                                  <li key={i} className="text-xs text-red-400">{detail}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {f.fileStatus.status === 'success' && f.fileStatus.result.verification.issues.length > 0 && (
+                      <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
+                        <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                          {f.fileStatus.result.verification.hadCorrections
+                            ? 'Issues found and auto-corrected:'
+                            : 'Minor notes from verification:'}
+                        </p>
+                        <ul className="space-y-0.5">
+                          {f.fileStatus.result.verification.issues.map((issue, i) => (
+                            <li key={i} className="text-xs text-yellow-700 dark:text-yellow-300">
+                              {issue.field}: expected &quot;{issue.expected}&quot;, found &quot;{issue.found}&quot;
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {f.fileStatus.status === 'success' && f.fileStatus.result.verification.is_accurate && f.fileStatus.result.verification.issues.length === 0 && (
+                      <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                        <p className="text-xs text-green-700 dark:text-green-300">
+                          Verification passed &mdash; all values match the source PDF.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-
-              {/* Verification details */}
-              {state.result.verification.issues.length > 0 && (
-                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                    {state.result.verification.hadCorrections
-                      ? 'Issues found and auto-corrected:'
-                      : 'Minor notes from verification:'}
-                  </p>
-                  <ul className="space-y-1">
-                    {state.result.verification.issues.map((issue, i) => (
-                      <li key={i} className="text-xs text-yellow-700 dark:text-yellow-300">
-                        {issue.field}: expected &quot;{issue.expected}&quot;, found &quot;{issue.found}&quot;
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {state.result.verification.is_accurate && state.result.verification.issues.length === 0 && (
-                <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <p className="text-xs text-green-700 dark:text-green-300">
-                    Verification passed -- all values match the source PDF.
-                  </p>
-                </div>
-              )}
 
               <div className="flex gap-3">
-                <button
-                  onClick={handleAcceptResult}
-                  className="flex-1 px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  Load Data
-                </button>
+                {hasAnySuccess && (
+                  <button
+                    onClick={handleAcceptResults}
+                    className="flex-1 px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Load Data
+                  </button>
+                )}
                 <button
                   onClick={handleReset}
-                  className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className={`px-4 py-3 text-gray-700 dark:text-gray-300 font-medium rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
+                    !hasAnySuccess ? 'flex-1' : ''
+                  }`}
                 >
-                  Upload Another
+                  Upload More
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* Error state */}
-          {state.status === 'error' && (
-            <div className="py-4">
-              <div className="flex items-start gap-3 mb-4">
-                <AlertCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                    {state.message}
-                  </p>
-                  {state.details && (
-                    <ul className="mt-2 space-y-1">
-                      {state.details.map((detail, i) => (
-                        <li key={i} className="text-xs text-red-500 dark:text-red-400">
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={handleReset}
-                className="w-full px-4 py-3 text-gray-700 dark:text-gray-300 font-medium rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                Try Again
-              </button>
             </div>
           )}
         </div>
