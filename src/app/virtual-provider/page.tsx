@@ -191,7 +191,10 @@ function VirtualProviderContent() {
       clearInterval(stepInterval)
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Analysis failed')
+      if (!res.ok) {
+        const detail = data.raw ? `\n\nModel output preview: ${data.raw}` : ''
+        throw new Error((data.error || 'Analysis failed') + detail)
+      }
 
       setCurrentSession(data.session)
       setView('follow-up')
