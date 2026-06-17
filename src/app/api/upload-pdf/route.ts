@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // --- Pass 1: Send PDF directly to Claude for conversion ---
     const conversionMessage = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 8192,
       system: CONVERSION_SYSTEM_PROMPT,
       messages: [
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
     // --- Pass 2: Send PDF + generated JSON to Claude for verification ---
     const verificationMessage = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 8192,
       system: VERIFICATION_SYSTEM_PROMPT,
       messages: [
