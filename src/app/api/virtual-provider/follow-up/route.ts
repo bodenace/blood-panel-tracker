@@ -9,6 +9,29 @@ const anthropic = new Anthropic({
 
 const MODEL = 'claude-sonnet-4-6'
 
+function extractJSON(responseText: string): string {
+  let clean = responseText.trim()
+
+  const fenceMatch = clean.match(/```(?:json)?\s*\n?([\s\S]*?)```/)
+  if (fenceMatch) {
+    clean = fenceMatch[1].trim()
+  }
+
+  if (!clean.startsWith('{')) {
+    const braceStart = clean.indexOf('{')
+    if (braceStart !== -1) {
+      clean = clean.slice(braceStart)
+    }
+  }
+
+  const lastBrace = clean.lastIndexOf('}')
+  if (lastBrace !== -1 && lastBrace < clean.length - 1) {
+    clean = clean.slice(0, lastBrace + 1)
+  }
+
+  return clean
+}
+
 function getProviderDir(user: string): string {
   return path.join(process.cwd(), 'src', 'data', user, '_provider')
 }
@@ -162,10 +185,7 @@ Based on the complete picture — bloodwork data, clinical analysis, and the pat
     })
 
     const responseText = response.content[0].type === 'text' ? response.content[0].text : '{}'
-    let clean = responseText.trim()
-    if (clean.startsWith('```')) {
-      clean = clean.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    }
+    let clean = extractJSON(responseText)
 
     let recommendations: Record<string, unknown>
     try {
@@ -225,10 +245,7 @@ Based on the complete picture — bloodwork data, clinical analysis, and the pat
       })
 
       const contraText = contraResponse.content[0].type === 'text' ? contraResponse.content[0].text : '{}'
-      let contraClean = contraText.trim()
-      if (contraClean.startsWith('```')) {
-        contraClean = contraClean.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-      }
+      const contraClean = extractJSON(contraText)
 
       const contraResult = JSON.parse(contraClean)
       if (Array.isArray(contraResult.contraindications)) {

@@ -193,9 +193,24 @@ function buildMetricSummary(metrics: Array<{
 
 function parseAgentResponse(responseText: string): unknown {
   let clean = responseText.trim()
-  if (clean.startsWith('```')) {
-    clean = clean.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+
+  const fenceMatch = clean.match(/```(?:json)?\s*\n?([\s\S]*?)```/)
+  if (fenceMatch) {
+    clean = fenceMatch[1].trim()
   }
+
+  if (!clean.startsWith('{')) {
+    const braceStart = clean.indexOf('{')
+    if (braceStart !== -1) {
+      clean = clean.slice(braceStart)
+    }
+  }
+
+  const lastBrace = clean.lastIndexOf('}')
+  if (lastBrace !== -1 && lastBrace < clean.length - 1) {
+    clean = clean.slice(0, lastBrace + 1)
+  }
+
   return JSON.parse(clean)
 }
 
